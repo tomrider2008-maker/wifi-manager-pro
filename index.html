@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WiFi Manager Pro</title>
+<style>
+:root {
+  --bg: #07091d;
+  --surface: rgba(255,255,255,0.035);
+  --surface-2: rgba(255,255,255,0.065);
+  --border: rgba(255,255,255,0.07);
+  --border-hi: rgba(255,255,255,0.18);
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #475569;
+  --primary: #6366f1;
+  --primary-glow: rgba(99,102,241,0.28);
+  --accent: #06b6d4;
+  --secondary: #8b5cf6;
+  --success: #10b981;
+  --success-glow: rgba(16,185,129,0.22);
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --danger-glow: rgba(239,68,68,0.22);
+  --grad: linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#06b6d4 100%);
+  --grad-ul: linear-gradient(135deg,#8b5cf6 0%,#ec4899 100%);
+  --r: 14px;
+  --r-sm: 8px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.45);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.65);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse at 12% 12%,rgba(99,102,241,.11) 0%,transparent 50%),
+  radial-gradient(ellipse at 88% 85%,rgba(139,92,246,.09) 0%,transparent 50%),
+  radial-gradient(ellipse at 88% 10%,rgba(6,182,212,.07) 0%,transparent 40%);
+  pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:1080px;margin:0 auto}
+
+/* ── HEADER ── */
+.header{background:rgba(7,9,29,.85);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border-bottom:1px solid var(--border);padding:0 28px;position:sticky;top:0;z-index:100}
+.header-inner{display:flex;align-items:center;gap:14px;padding:14px 0}
+.logo{width:42px;height:42px;background:var(--grad);border-radius:12px;display:flex;
+  align-items:center;justify-content:center;font-size:21px;flex-shrink:0;
+  box-shadow:0 0 22px var(--primary-glow)}
+.brand h1{font-size:18px;font-weight:800;background:var(--grad);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.3px}
+.brand p{font-size:11px;color:var(--text-muted);margin-top:1px}
+.conn-pill{margin-left:auto;display:flex;align-items:center;gap:10px;
+  padding:7px 14px 7px 10px;background:var(--surface);border:1px solid var(--border);
+  border-radius:40px;min-width:190px;transition:border-color .3s}
+.conn-pill.online{border-color:rgba(16,185,129,.3)}
+.conn-pill.offline{border-color:rgba(239,68,68,.3)}
+.s-dot{width:8px;height:8px;border-radius:50%;background:var(--text-muted);flex-shrink:0;transition:all .3s}
+.s-dot.on{background:var(--success);box-shadow:0 0 0 3px var(--success-glow);animation:pdot 2s infinite}
+.s-dot.off{background:var(--danger)}
+@keyframes pdot{0%,100%{box-shadow:0 0 0 3px var(--success-glow)}50%{box-shadow:0 0 0 7px rgba(16,185,129,.08)}}
+.s-label{font-size:13px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-dc{background:rgba(239,68,68,.13);color:var(--danger);border:1px solid rgba(239,68,68,.28);
+  padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-dc:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+
+/* ── INFO BAR ── */
+.info-bar{background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);
+  padding:9px 28px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.ib{display:flex;align-items:center;gap:6px;font-size:11.5px}
+.ib .k{color:var(--text-muted)}
+.ib .v{color:var(--text-dim);font-weight:600;font-family:'Cascadia Code','Consolas',monospace}
+.ib .v.hl{color:var(--accent)}
+
+/* ── TABS ── */
+.tabs{background:rgba(7,9,29,.75);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border);display:flex;padding:0 28px;gap:2px;
+  position:sticky;top:71px;z-index:99;overflow-x:auto}
+.tabs::-webkit-scrollbar{height:0}
+.tab{background:none;border:none;color:var(--text-muted);padding:13px 16px;
+  font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;
+  transition:color .2s;white-space:nowrap;border-bottom:2px solid transparent;position:relative}
+.tab:hover{color:var(--text-dim)}
+.tab.active{color:var(--text);border-bottom-color:transparent}
+.tab.active::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);
+  width:70%;height:2px;background:var(--grad);border-radius:2px}
+.tc{background:var(--surface-2);color:var(--text-muted);font-size:10px;font-weight:700;
+  padding:1px 6px;border-radius:20px;min-width:18px;text-align:center;transition:all .2s}
+.tab.active .tc{background:rgba(99,102,241,.18);color:var(--primary)}
+
+/* ── CONTENT ── */
+.content{padding:24px 28px}
+.panel{display:none}.panel.active{display:block}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;gap:10px;margin-bottom:18px;align-items:center;flex-wrap:wrap}
+.sw{position:relative;flex:1;min-width:180px}
+.si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;font-size:14px}
+.sbox{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:9px 14px 9px 36px;color:var(--text);font-size:13.5px;outline:none;transition:border-color .2s}
+.sbox:focus{border-color:var(--primary);background:var(--surface-2)}
+.sbox::placeholder{color:var(--text-muted)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--r-sm);
+  font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;
+  transition:all .2s;white-space:nowrap;text-decoration:none;line-height:1}
+.bp{background:var(--primary);color:#fff;border-color:var(--primary)}
+.bp:hover{background:#4f46e5;box-shadow:0 0 22px var(--primary-glow)}
+.bs{background:var(--surface);color:var(--text-dim);border-color:var(--border)}
+.bs:hover{background:var(--surface-2);border-color:var(--border-hi);color:var(--text)}
+.bg{background:rgba(16,185,129,.13);color:var(--success);border-color:rgba(16,185,129,.28)}
+.bg:hover{background:var(--success);color:#fff;border-color:var(--success)}
+.btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+
+/* ── NETWORK CARDS ── */
+.ngrid{display:flex;flex-direction:column;gap:8px}
+.nc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:15px 18px;display:flex;align-items:center;gap:14px;transition:all .22s;
+  position:relative;overflow:hidden}
+.nc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border);transition:all .22s}
+.nc:hover{background:var(--surface-2);border-color:var(--border-hi);transform:translateY(-1px);box-shadow:var(--shadow)}
+.nc:hover::before{background:var(--primary)}
+.nc.cur{border-color:rgba(16,185,129,.33);background:rgba(16,185,129,.04)}
+.nc.cur::before{background:var(--success)}
+.ni{width:38px;height:38px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;transition:all .2s}
+.nc:hover .ni{border-color:var(--border-hi)}
+.nc.cur .ni{background:rgba(16,185,129,.13);border-color:rgba(16,185,129,.28)}
+.ninfo{flex:1;min-width:0}
+.nname{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:flex;align-items:center;gap:8px}
+.nmeta{font-size:11.5px;color:var(--text-muted);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap}
+.nmeta span{display:flex;align-items:center;gap:3px}
+
+/* Password */
+.pf{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.28);border:1px solid var(--border);
+  border-radius:7px;padding:5px 9px;font-family:'Cascadia Code','Consolas',monospace;
+  font-size:12px;color:#a5b4fc;max-width:210px}
+.pt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib2{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;
+  padding:2px;border-radius:4px;transition:color .2s;flex-shrink:0}
+.ib2:hover{color:var(--text)}
+.nact{display:flex;gap:6px;align-items:center;flex-shrink:0}
+
+/* Badges */
+.badge{font-size:10.5px;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap}
+.bopen{background:rgba(16,185,129,.11);color:var(--success);border:1px solid rgba(16,185,129,.23)}
+.bwpa{background:rgba(99,102,241,.11);color:var(--primary);border:1px solid rgba(99,102,241,.23)}
+.bconn{background:rgba(16,185,129,.14);color:var(--success);border:1px solid rgba(16,185,129,.3)}
+.bsaved{background:rgba(139,92,246,.11);color:var(--secondary);border:1px solid rgba(139,92,246,.22)}
+
+/* Signal bars */
+.sbars{display:flex;gap:2.5px;align-items:flex-end;height:15px}
+.sbars span{display:block;width:4px;border-radius:1.5px;background:var(--border);transition:background .3s}
+.sbars span:nth-child(1){height:4px}
+.sbars span:nth-child(2){height:7px}
+.sbars span:nth-child(3){height:10px}
+.sbars span:nth-child(4){height:13px}
+.sbars span.lit{background:var(--primary)}
+.sbars.strong span.lit{background:var(--success)}
+.sbars.medium span.lit{background:var(--warning)}
+.sbars.weak span.lit{background:var(--danger)}
+
+/* Empty / Loading */
+.empty{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.empty .eico{font-size:48px;margin-bottom:14px;opacity:.55}
+.empty p{font-size:14.5px}.empty small{font-size:12px;display:block;margin-top:5px;opacity:.6}
+.ldg{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.spin{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--primary);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SPEED TEST ── */
+.spd-wrap{max-width:740px;margin:0 auto}
+.gauges-row{display:flex;gap:20px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+.gc{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;flex:1;min-width:220px;
+  transition:all .35s}
+.gc.testing{border-color:rgba(99,102,241,.38);background:rgba(99,102,241,.04);
+  box-shadow:0 0 32px rgba(99,102,241,.09)}
+.gh{font-size:13px;font-weight:600;color:var(--text-dim)}
+.gsw{position:relative;width:190px;height:190px}
+.gsw svg{width:190px;height:190px}
+.gctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gspd{font-size:34px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;transition:color .3s}
+.gunit{font-size:11px;color:var(--text-muted);font-weight:500;margin-top:3px}
+
+.srow{display:flex;gap:14px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+.sbox2{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:15px 20px;text-align:center;min-width:110px;flex:1;max-width:150px}
+.sv{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.sl{font-size:10.5px;color:var(--text-muted);margin-top:5px;font-weight:500;
+  text-transform:uppercase;letter-spacing:.5px}
+
+.spd-btn{display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:16px;border-radius:var(--r);font-size:15px;font-weight:700;
+  cursor:pointer;border:none;background:var(--grad);color:#fff;
+  box-shadow:0 4px 26px rgba(99,102,241,.32);transition:all .3s;letter-spacing:.2px;
+  margin-bottom:18px}
+.spd-btn:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(99,102,241,.48)}
+.spd-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+
+.pbar-wrap{margin-bottom:18px}
+.pbar{height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.pfill{height:100%;background:var(--grad);border-radius:3px;width:0%;transition:width .35s ease}
+.plbl{font-size:12.5px;color:var(--text-muted);text-align:center}
+
+.hist{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:20px}
+.hh{padding:13px 18px;border-bottom:1px solid var(--border);font-size:12.5px;font-weight:700;color:var(--text-dim)}
+.htbl{width:100%;border-collapse:collapse}
+.htbl th{padding:9px 14px;text-align:left;font-size:10.5px;font-weight:700;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.htbl td{padding:11px 14px;font-size:12.5px;color:var(--text-dim);border-bottom:1px solid rgba(255,255,255,.03)}
+.htbl tr:last-child td{border-bottom:none}
+.htbl td.dl{color:var(--accent);font-weight:600}
+.htbl td.ul{color:#c084fc;font-weight:600}
+.htbl td.pg{color:var(--success);font-weight:600}
+.htbl td.gr{font-weight:800;font-size:14px}
+.grade-A{color:var(--success)}.grade-B{color:var(--accent)}.grade-C{color:var(--warning)}.grade-D,.grade-F{color:var(--danger)}
+
+/* ── DIAGNOSTICS ── */
+.diag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:18px}
+.dc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.dct{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.dr{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12.5px}
+.dr:last-child{border-bottom:none}
+.dk{color:var(--text-muted);flex-shrink:0}
+.dv{color:var(--text);font-weight:500;text-align:right;font-family:'Cascadia Code','Consolas',monospace;
+  font-size:11.5px;word-break:break-all}
+.inet-pill{display:flex;align-items:center;gap:10px;padding:13px 18px;border-radius:var(--r);
+  font-size:13.5px;font-weight:600;margin-bottom:14px}
+.inet-ok{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.28);color:var(--success)}
+.inet-fail{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.28);color:var(--danger)}
+
+/* ── MODALS ── */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  z-index:1000;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.mb{background:#0c1127;border:1px solid var(--border-hi);border-radius:20px;
+  padding:30px;width:100%;max-width:350px;box-shadow:var(--shadow-lg);
+  animation:mbin .22s ease}
+@keyframes mbin{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
+.mt{font-size:17px;font-weight:700;margin-bottom:3px}
+.ms{font-size:12.5px;color:var(--text-muted);margin-bottom:22px}
+.flbl{font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:5px;
+  text-transform:uppercase;letter-spacing:.4px}
+.fiw{position:relative;margin-bottom:18px}
+.fi{width:100%;background:rgba(0,0,0,.32);border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:11px 42px 11px 13px;color:var(--text);font-size:13.5px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--primary)}
+.feye{position:absolute;right:11px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;transition:color .2s}
+.feye:hover{color:var(--text)}
+.mact{display:flex;gap:10px}.mact .btn{flex:1;justify-content:center}
+
+/* Toast */
+.toast{position:fixed;bottom:22px;right:22px;background:#0c1127;
+  border:1px solid var(--border-hi);border-radius:12px;padding:13px 18px;
+  font-size:13px;display:flex;align-items:center;gap:9px;box-shadow:var(--shadow-lg);
+  transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  z-index:2000;max-width:320px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:rgba(16,185,129,.38)}
+.toast.error{border-color:rgba(239,68,68,.38)}
+.toast.info{border-color:rgba(99,102,241,.38)}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">📶</div>
+    <div class="brand"><h1>WiFi Manager Pro</h1><p>Network management &amp; diagnostics</p></div>
+    <div class="conn-pill" id="connPill">
+      <div class="s-dot" id="sDot"></div>
+      <span class="s-label" id="sLabel">Checking…</span>
+      <button class="btn-dc" id="btnDc" style="display:none" onclick="disconnect()">Disconnect</button>
+    </div>
+  </div>
+</header>
+
+<!-- INFO BAR -->
+<div class="info-bar" id="infoBar" style="display:none">
+  <div class="ib"><span class="k">IP</span><span class="v hl" id="ibIp">—</span></div>
+  <div class="ib"><span class="k">Signal</span><span class="v" id="ibSig">—</span></div>
+  <div class="ib"><span class="k">Rx</span><span class="v" id="ibRx">—</span></div>
+  <div class="ib"><span class="k">Tx</span><span class="v" id="ibTx">—</span></div>
+  <div class="ib"><span class="k">Band</span><span class="v" id="ibBand">—</span></div>
+  <div class="ib"><span class="k">Channel</span><span class="v" id="ibCh">—</span></div>
+  <div class="ib"><span class="k">BSSID</span><span class="v" id="ibBssid">—</span></div>
+  <div class="ib" id="inetBadge" style="margin-left:auto;display:none">
+    <span id="inetDot" style="font-size:13px">⏳</span>
+    <span class="v" id="inetLabel" style="font-size:11px">Checking…</span>
+  </div>
+</div>
+
+<!-- CAPTIVE PORTAL BANNER -->
+<div id="portalBanner" style="display:none;background:rgba(245,158,11,0.1);border-bottom:1px solid rgba(245,158,11,0.3);padding:12px 28px">
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;max-width:1080px;margin:0 auto">
+    <span style="font-size:20px">🔒</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:700;color:#fbbf24" id="bannerTitle">Network requires sign-in</div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:2px" id="bannerSub">This WiFi has a captive portal or Zscaler proxy blocking access.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="btnOpenPortal" onclick="openPortal()"
+        style="background:rgba(245,158,11,0.18);color:#fbbf24;border-color:rgba(245,158,11,0.35);font-size:12px;padding:7px 14px">
+        🌐 Open Portal Page
+      </button>
+      <button class="btn bs" onclick="openHttp('http://neverssl.com')"
+        style="font-size:12px;padding:7px 14px">
+        🔓 Try neverssl.com
+      </button>
+      <button class="btn bs" id="btnFixCert" onclick="fixZscaler()" style="font-size:12px;padding:7px 14px;display:none">
+        🔐 Fix Zscaler Cert
+      </button>
+      <button class="btn bs" onclick="dismissBanner()" style="font-size:12px;padding:7px 14px;color:var(--text-muted)">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- ZSCALER HELPER MODAL -->
+<div class="mo" id="zscalerMo">
+  <div class="mb">
+    <div class="mt">🔐 Fix Zscaler Certificate</div>
+    <div class="ms">Zscaler is intercepting HTTPS traffic but its root certificate isn't trusted by your browser. Follow these steps:</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px">
+      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px">
+        <div style="font-weight:700;margin-bottom:6px;color:var(--accent)">Option 1 — Quick bypass (recommended)</div>
+        <div style="color:var(--text-dim);line-height:1.6">Click <strong>"Try neverssl.com"</strong> in the banner. This opens a plain HTTP page that triggers the portal login without SSL errors.</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px">
+        <div style="font-weight:700;margin-bottom:6px;color:var(--accent)">Option 2 — Auto-install Zscaler root certificate</div>
+        <div style="color:var(--text-dim);line-height:1.6;margin-bottom:10px">Connects to google.com, extracts the Zscaler root CA from the intercepted TLS chain, and installs it silently — <strong>no admin prompt needed</strong>. After it finishes, restart your browser.</div>
+        <button id="btnInstallCert" class="btn bp" onclick="installZscalerCert()" style="font-size:12px;padding:7px 14px">⬇ Auto-Extract &amp; Install Cert</button>
+        <div id="certStatus" style="font-size:11.5px;color:var(--text-muted);margin-top:8px"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px">
+        <div style="font-weight:700;margin-bottom:6px;color:var(--accent)">Option 3 — Accept in Edge</div>
+        <div style="color:var(--text-dim);line-height:1.6">In the Edge error page: click <strong>Advanced</strong> → then click <strong>"Continue to site (unsafe)"</strong> at the bottom.</div>
+      </div>
+    </div>
+    <button class="btn bs" style="width:100%;justify-content:center" onclick="document.getElementById('zscalerMo').classList.remove('open')">Close</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<nav class="tabs">
+  <button class="tab active" onclick="showTab('saved')" id="tab-saved">🔑 Saved <span class="tc" id="savedCount">0</span></button>
+  <button class="tab" onclick="showTab('scan')" id="tab-scan">📡 Scan <span class="tc" id="scanCount">0</span></button>
+  <button class="tab" onclick="showTab('speed')" id="tab-speed">⚡ Speed Test</button>
+  <button class="tab" onclick="showTab('diag')" id="tab-diag">🔧 Diagnostics</button>
+</nav>
+
+<div class="content">
+
+<!-- SAVED -->
+<div class="panel active" id="panel-saved">
+  <div class="toolbar">
+    <div class="sw"><span class="si">🔍</span><input class="sbox" type="text" placeholder="Search saved networks…" oninput="filterSaved(this.value)"/></div>
+    <button class="btn bs" onclick="loadSaved()">↻ Refresh</button>
+    <button class="btn bs" onclick="exportPasswords()">⬇ Export</button>
+  </div>
+  <div id="savedList" class="ngrid"><div class="ldg"><div class="spin"></div><p>Loading…</p></div></div>
+</div>
+
+<!-- SCAN -->
+<div class="panel" id="panel-scan">
+  <div class="toolbar">
+    <div class="sw"><span class="si">🔍</span><input class="sbox" type="text" placeholder="Search nearby networks…" oninput="filterScan(this.value)"/></div>
+    <button class="btn bp" id="btnScan" onclick="scanNetworks()">🔍 Scan Now</button>
+  </div>
+  <div id="scanList" class="ngrid">
+    <div class="empty"><div class="eico">📡</div><p>Click "Scan Now" to find nearby networks</p></div>
+  </div>
+</div>
+
+<!-- SPEED TEST -->
+<div class="panel" id="panel-speed">
+  <div class="spd-wrap">
+
+    <div class="gauges-row">
+      <!-- Download gauge -->
+      <div class="gc" id="dlCard">
+        <div class="gh">⬇ Download</div>
+        <div class="gsw">
+          <svg viewBox="0 0 190 190">
+            <defs>
+              <linearGradient id="dlG" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#06b6d4"/>
+              </linearGradient>
+            </defs>
+            <!-- track -->
+            <circle cx="95" cy="95" r="78" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="13"
+              stroke-dasharray="367.57 122.52" stroke-linecap="round" transform="rotate(135 95 95)"/>
+            <!-- fill -->
+            <circle cx="95" cy="95" r="78" fill="none" stroke="url(#dlG)" stroke-width="13"
+              stroke-dasharray="0 490.09" stroke-linecap="round" transform="rotate(135 95 95)"
+              id="dlFill" style="transition:stroke-dasharray .35s ease"/>
+          </svg>
+          <div class="gctr">
+            <div class="gspd" id="dlSpd" style="color:var(--accent)">—</div>
+            <div class="gunit">Mbps</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload gauge -->
+      <div class="gc" id="ulCard">
+        <div class="gh">⬆ Upload</div>
+        <div class="gsw">
+          <svg viewBox="0 0 190 190">
+            <defs>
+              <linearGradient id="ulG" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+            </defs>
+            <circle cx="95" cy="95" r="78" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="13"
+              stroke-dasharray="367.57 122.52" stroke-linecap="round" transform="rotate(135 95 95)"/>
+            <circle cx="95" cy="95" r="78" fill="none" stroke="url(#ulG)" stroke-width="13"
+              stroke-dasharray="0 490.09" stroke-linecap="round" transform="rotate(135 95 95)"
+              id="ulFill" style="transition:stroke-dasharray .35s ease"/>
+          </svg>
+          <div class="gctr">
+            <div class="gspd" id="ulSpd" style="color:#c084fc">—</div>
+            <div class="gunit">Mbps</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="srow">
+      <div class="sbox2"><div class="sv" id="pingVal" style="color:var(--success)">—</div><div class="sl">Ping (ms)</div></div>
+      <div class="sbox2"><div class="sv" id="jitVal" style="color:var(--warning)">—</div><div class="sl">Jitter (ms)</div></div>
+      <div class="sbox2"><div class="sv" id="gradeVal">—</div><div class="sl">Grade</div></div>
+    </div>
+
+    <button class="spd-btn" id="btnSpd" onclick="runSpeedTest()">▶&nbsp; Start Speed Test</button>
+
+    <div class="pbar-wrap" id="pbarWrap" style="display:none">
+      <div class="pbar"><div class="pfill" id="pfill"></div></div>
+      <div class="plbl" id="plbl">Preparing…</div>
+    </div>
+
+    <div class="hist" id="hist" style="display:none">
+      <div class="hh">📊 Test History</div>
+      <table class="htbl">
+        <thead><tr><th>Time</th><th>Download</th><th>Upload</th><th>Ping</th><th>Grade</th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- DIAGNOSTICS -->
+<div class="panel" id="panel-diag">
+  <div class="toolbar">
+    <button class="btn bp" onclick="loadDiagnostics()">🔄 Run Diagnostics</button>
+  </div>
+  <div id="diagOut">
+    <div class="empty"><div class="eico">🔧</div><p>Click Run Diagnostics to analyse your network</p></div>
+  </div>
+</div>
+
+</div><!-- content -->
+</div><!-- app -->
+
+<!-- Connect Modal -->
+<div class="mo" id="connMo">
+  <div class="mb">
+    <div class="mt">Connect to Network</div>
+    <div class="ms" id="connSub"></div>
+    <div id="connPwSec">
+      <div class="flbl">Password</div>
+      <div class="fiw">
+        <input class="fi" type="password" id="connPw" placeholder="Enter WiFi password…"/>
+        <button class="feye" id="connEye" onclick="toggleConnPw()">👁</button>
+      </div>
+    </div>
+    <div class="mact">
+      <button class="btn bs" onclick="closeConnMo()">Cancel</button>
+      <button class="btn bp" id="connSubmit" onclick="submitConn()">Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Modal -->
+<div class="mo" id="qrMo">
+  <div class="mb" style="text-align:center">
+    <div class="mt" id="qrTitle">WiFi QR Code</div>
+    <div class="ms" id="qrSub">Scan with Android or iOS camera to connect</div>
+    <div id="qr-container" style="display:inline-block;background:#fff;padding:10px;border-radius:10px;margin-bottom:22px;"></div>
+    <button class="btn bs" style="width:100%;justify-content:center" onclick="closeQR()">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+'use strict';
+// ── State ──────────────────────────────────────────────────────────
+let savedNetworks = [], scanResults = [], currentSsid = null;
+let revealed = {}, connTarget = {};
+let speedHistory = [];
+let testing = false;
+let dlMax = 100, ulMax = 100;
+const GAUGE_ARC = 367.57, GAUGE_CIRC = 490.09;
+
+// ── Tabs ───────────────────────────────────────────────────────────
+function showTab(t) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+  document.getElementById('panel-' + t).classList.add('active');
+  if (t === 'diag') {
+    const out = document.getElementById('diagOut');
+    if (out.querySelector('.empty')) loadDiagnostics();
+  }
+}
+
+// ── Status ─────────────────────────────────────────────────────────
+async function loadStatus() {
+  try {
+    const s = await api('/api/status');
+    currentSsid = s.ssid;
+    const dot = document.getElementById('sDot');
+    const lbl = document.getElementById('sLabel');
+    const btn = document.getElementById('btnDc');
+    const pill = document.getElementById('connPill');
+    const bar = document.getElementById('infoBar');
+
+    if (s.connected) {
+      dot.className = 's-dot on';
+      pill.className = 'conn-pill online';
+      lbl.textContent = s.ssid || 'Connected';
+      btn.style.display = 'block';
+      bar.style.display = 'flex';
+      checkInternet(true);
+      document.getElementById('ibIp').textContent = s.ip || '—';
+      document.getElementById('ibSig').textContent = s.signal ? s.signal + '%' : '—';
+      document.getElementById('ibRx').textContent = s.rxRate ? s.rxRate + ' Mbps' : '—';
+      document.getElementById('ibTx').textContent = s.txRate ? s.txRate + ' Mbps' : '—';
+      document.getElementById('ibBand').textContent = s.band || '—';
+      document.getElementById('ibCh').textContent = s.channel || '—';
+      document.getElementById('ibBssid').textContent = s.bssid || '—';
+    } else {
+      dot.className = 's-dot off';
+      pill.className = 'conn-pill offline';
+      lbl.textContent = 'Not connected';
+      btn.style.display = 'none';
+      bar.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+async function disconnect() {
+  try { await api('/api/disconnect', 'POST'); toast('✅ Disconnected', 'success'); setTimeout(loadStatus, 1000); } catch {}
+}
+
+// ── Saved Networks ─────────────────────────────────────────────────
+async function loadSaved() {
+  document.getElementById('savedList').innerHTML = '<div class="ldg"><div class="spin"></div><p>Loading saved networks…</p></div>';
+  try {
+    savedNetworks = await api('/api/saved');
+    document.getElementById('savedCount').textContent = savedNetworks.length;
+    renderSaved(savedNetworks);
+  } catch {
+    document.getElementById('savedList').innerHTML = '<div class="empty"><div class="eico">⚠️</div><p>Failed to load. Run as Administrator.</p></div>';
+  }
+}
+
+function renderSaved(list) {
+  if (!list.length) {
+    document.getElementById('savedList').innerHTML = '<div class="empty"><div class="eico">🔌</div><p>No saved WiFi networks found</p></div>';
+    return;
+  }
+  document.getElementById('savedList').innerHTML = list.map(n => {
+    const isCur = currentSsid && n.name === currentSsid;
+    const hasPass = n.password && n.password !== '(open network)';
+    const sid = eid(n.name);
+    const shown = revealed[sid];
+    const disp = hasPass ? (shown ? n.password : '•'.repeat(Math.min(n.password.length, 18))) : '(open)';
+    return `<div class="nc ${isCur ? 'cur' : ''}">
+      <div class="ni">${hasPass ? '🔑' : '🔓'}</div>
+      <div class="ninfo">
+        <div class="nname">${h(n.name)}${isCur ? '<span class="badge bconn">Connected</span>' : ''}
+        </div>
+        <div class="nmeta"><span>🔐 ${h(n.auth)}</span><span>🔒 ${h(n.cipher)}</span></div>
+      </div>
+      ${hasPass ? `<div class="pf">
+        <span class="pt" id="pw-${sid}">${h(disp)}</span>
+        <button class="ib2" onclick="togglePw('${sid}','${js(n.password)}')" title="Show/hide">${shown ? '🙈' : '👁'}</button>
+        <button class="ib2" onclick="copyText('${js(n.password)}')" title="Copy">📋</button>
+      </div>` : '<span class="badge bopen">Open</span>'}
+      <div class="nact">
+        ${!isCur ? `<button class="btn bg" onclick="connectSaved('${js(n.name)}')">Connect</button>` : ''}
+        <button class="btn bs" onclick="showQR('${js(n.name)}','${js(n.password || '')}','${js(n.auth)}')" title="QR Code">⬜ QR</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterSaved(q) { renderSaved(savedNetworks.filter(n => n.name.toLowerCase().includes(q.toLowerCase()))); }
+
+function togglePw(sid, pass) {
+  revealed[sid] = !revealed[sid];
+  const el = document.getElementById('pw-' + sid);
+  if (el) el.textContent = revealed[sid] ? pass : '•'.repeat(Math.min(pass.length, 18));
+  const btn = el && el.nextElementSibling;
+  if (btn) btn.textContent = revealed[sid] ? '🙈' : '👁';
+}
+
+async function connectSaved(name) {
+  toast('⏳ Connecting to ' + name + '…', 'info');
+  try {
+    const d = await api('/api/connect', 'POST', { name });
+    if (d.success) {
+      toast('✅ Connected to ' + name, 'success');
+      setTimeout(() => { loadStatus(); loadSaved(); }, 1500);
+      setTimeout(() => checkInternet(true), 3500); // check portal after connect settles
+    } else toast('❌ Could not connect to ' + name, 'error');
+  } catch { toast('❌ Connection failed', 'error'); }
+}
+
+function exportPasswords() {
+  if (!savedNetworks.length) return;
+  const lines = ['WiFi Network Passwords', '='.repeat(40), ''];
+  savedNetworks.forEach(n => { lines.push('Network: ' + n.name, 'Password: ' + n.password, 'Security: ' + n.auth + ' / ' + n.cipher, ''); });
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain' })), download: 'wifi-passwords.txt' });
+  a.click();
+  toast('⬇ Exported wifi-passwords.txt', 'success');
+}
+
+// ── Scan Networks ──────────────────────────────────────────────────
+async function scanNetworks() {
+  const btn = document.getElementById('btnScan');
+  btn.disabled = true; btn.textContent = '⏳ Scanning…';
+  document.getElementById('scanList').innerHTML = '<div class="ldg"><div class="spin"></div><p>Scanning for nearby networks…</p></div>';
+  try {
+    scanResults = await api('/api/networks');
+    document.getElementById('scanCount').textContent = scanResults.length;
+    renderScan(scanResults);
+  } catch {
+    document.getElementById('scanList').innerHTML = '<div class="empty"><div class="eico">⚠️</div><p>Scan failed. Ensure WiFi adapter is enabled.</p></div>';
+  }
+  btn.disabled = false; btn.textContent = '🔍 Scan Now';
+}
+
+function renderScan(list) {
+  if (!list.length) {
+    document.getElementById('scanList').innerHTML = '<div class="empty"><div class="eico">📡</div><p>No networks found nearby</p></div>';
+    return;
+  }
+  const sorted = [...list].sort((a, b) => b.signal - a.signal);
+  document.getElementById('scanList').innerHTML = sorted.map(n => {
+    const isCur = currentSsid && n.ssid === currentSsid;
+    const hasSaved = savedNetworks.find(s => s.name === n.ssid);
+    const isOpen = n.auth.toLowerCase().includes('open');
+    const bars = Math.ceil(n.signal / 25);
+    const cls = n.signal >= 70 ? 'strong' : n.signal >= 40 ? 'medium' : 'weak';
+    const barsHtml = `<div class="sbars ${cls}">${[1,2,3,4].map(i => `<span class="${bars >= i ? 'lit' : ''}"></span>`).join('')}</div>`;
+    return `<div class="nc ${isCur ? 'cur' : ''}">
+      ${barsHtml}
+      <div class="ninfo">
+        <div class="nname">${h(n.ssid)}${isCur ? '<span class="badge bconn">Connected</span>' : ''}${hasSaved ? '<span class="badge bsaved">Saved</span>' : ''}</div>
+        <div class="nmeta"><span>${n.signal}%</span>${n.band ? `<span>${h(n.band)}</span>` : ''}<span>${h(n.bssid)}</span></div>
+      </div>
+      <span class="badge ${isOpen ? 'bopen' : 'bwpa'}">${isOpen ? 'Open' : h(n.auth)}</span>
+      <div class="nact">${!isCur ? `<button class="btn ${hasSaved || isOpen ? 'bg' : 'bp'}" onclick="smartConnect('${js(n.ssid)}','${js(n.auth)}',${isOpen})">${isOpen ? 'Join' : 'Connect'}</button>` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterScan(q) { renderScan(scanResults.filter(n => n.ssid.toLowerCase().includes(q.toLowerCase()))); }
+
+async function smartConnect(ssid, auth, isOpen) {
+  toast('⏳ Connecting to ' + ssid + '…', 'info');
+  // try saved profile first
+  try {
+    const d = await api('/api/connect', 'POST', { name: ssid });
+    if (d.success) { toast('✅ Connected to ' + ssid, 'success'); setTimeout(() => { loadStatus(); loadSaved(); }, 1500); return; }
+  } catch {}
+  if (isOpen) {
+    try {
+      const d = await api('/api/connect-new', 'POST', { ssid, password: '', auth });
+      if (d.success) { toast('✅ Connected to ' + ssid, 'success'); setTimeout(() => { loadStatus(); loadSaved(); }, 1500); return; }
+    } catch {}
+    toast('❌ Could not join ' + ssid, 'error');
+  } else {
+    openConnMo(ssid, auth, false);
+  }
+}
+
+// ── Connect Modal ──────────────────────────────────────────────────
+function openConnMo(ssid, auth, isOpen) {
+  connTarget = { ssid, auth, isOpen };
+  document.getElementById('connSub').textContent = 'Network: ' + ssid;
+  document.getElementById('connPw').value = '';
+  document.getElementById('connPwSec').style.display = isOpen ? 'none' : 'block';
+  document.getElementById('connSubmit').textContent = isOpen ? 'Join' : 'Connect';
+  document.getElementById('connMo').classList.add('open');
+  if (!isOpen) setTimeout(() => document.getElementById('connPw').focus(), 120);
+}
+function closeConnMo() { document.getElementById('connMo').classList.remove('open'); }
+function toggleConnPw() {
+  const i = document.getElementById('connPw'), e = document.getElementById('connEye');
+  i.type = i.type === 'password' ? 'text' : 'password';
+  e.textContent = i.type === 'password' ? '👁' : '🙈';
+}
+async function submitConn() {
+  const { ssid, auth, isOpen } = connTarget;
+  const pw = isOpen ? '' : document.getElementById('connPw').value;
+  if (!isOpen && !pw) { toast('⚠️ Enter a password', 'error'); return; }
+  const btn = document.getElementById('connSubmit');
+  btn.disabled = true; btn.textContent = '⏳ Connecting…'; closeConnMo();
+  toast('⏳ Connecting to ' + ssid + '…', 'info');
+  try {
+    const d = await api('/api/connect-new', 'POST', { ssid, password: pw, auth });
+    if (d.success) {
+      toast('✅ Connected to ' + ssid, 'success');
+      setTimeout(() => { loadStatus(); loadSaved(); }, 1500);
+      setTimeout(() => checkInternet(true), 3500);
+    } else toast('❌ Wrong password or connection failed', 'error');
+  } catch { toast('❌ Connection error', 'error'); }
+  btn.disabled = false; btn.textContent = 'Connect';
+}
+
+// ── QR Code ────────────────────────────────────────────────────────
+function showQR(name, pass, auth) {
+  document.getElementById('qrTitle').textContent = 'QR — ' + name;
+  document.getElementById('qrSub').textContent = 'Scan with Android or iOS to connect';
+  const a = (auth || '').toLowerCase();
+  const type = a.includes('wpa') ? 'WPA' : a.includes('wep') ? 'WEP' : 'nopass';
+  const data = `WIFI:S:${name};T:${type};P:${pass};;`;
+  const c = document.getElementById('qr-container');
+  c.innerHTML = '';
+  new QRCode(c, { text: data, width: 200, height: 200, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M });
+  document.getElementById('qrMo').classList.add('open');
+}
+function closeQR() { document.getElementById('qrMo').classList.remove('open'); }
+
+// ── Speed Test ─────────────────────────────────────────────────────
+function setGauge(id, mbps, maxMbps) {
+  const fill = document.getElementById(id);
+  const ratio = Math.min(Math.max(mbps / maxMbps, 0), 1);
+  fill.setAttribute('stroke-dasharray', (ratio * GAUGE_ARC).toFixed(2) + ' ' + GAUGE_CIRC);
+}
+function resetGauge(id) {
+  document.getElementById(id).setAttribute('stroke-dasharray', '0 ' + GAUGE_CIRC);
+}
+
+async function measurePing() {
+  const times = [];
+  for (let i = 0; i < 8; i++) {
+    const t0 = performance.now();
+    try { await fetch('/api/ping?_=' + Date.now()); times.push(performance.now() - t0); } catch {}
+    if (i < 7) await sleep(80);
+  }
+  if (!times.length) return { avg: null, jitter: null };
+  const core = times.sort((a,b)=>a-b).slice(1, -1); // drop min and max
+  const avg = core.reduce((a,b)=>a+b,0) / core.length;
+  const jitter = Math.sqrt(core.map(t=>(t-avg)**2).reduce((a,b)=>a+b,0)/core.length);
+  return { avg: Math.round(avg), jitter: Math.round(jitter) };
+}
+
+async function measureDownload(onProgress) {
+  // Try Cloudflare CDN first (real internet speed), fallback to local
+  const MB = 20;
+  const cfUrl = `https://speed.cloudflare.com/__down?bytes=${MB * 1024 * 1024}`;
+  const localUrl = `/api/speed/download?mb=${MB}&_=${Date.now()}`;
+
+  let useUrl = cfUrl;
+  dlMax = 100;
+
+  try {
+    const r = await fetch(useUrl, { cache: 'no-store' });
+    if (!r.ok) throw new Error('cf fail');
+    const reader = r.body.getReader();
+    let received = 0;
+    const total = MB * 1024 * 1024;
+    const start = performance.now();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      received += value.length;
+      const elapsed = (performance.now() - start) / 1000;
+      if (elapsed > 0.3) {
+        const mbps = received * 8 / elapsed / 1e6;
+        if (mbps > dlMax * 0.88) dlMax = dlMax * 2;
+        onProgress(mbps, received / total);
+      }
+    }
+
+    const elapsed = (performance.now() - start) / 1000;
+    return received * 8 / elapsed / 1e6;
+  } catch {
+    // Fallback to local server
+    useUrl = localUrl;
+    const r = await fetch(useUrl, { cache: 'no-store' });
+    const reader = r.body.getReader();
+    let received = 0;
+    const total = MB * 1024 * 1024;
+    const start = performance.now();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      received += value.length;
+      const elapsed = (performance.now() - start) / 1000;
+      if (elapsed > 0.3) {
+        const mbps = received * 8 / elapsed / 1e6;
+        if (mbps > dlMax * 0.88) dlMax = dlMax * 2;
+        onProgress(mbps, received / total);
+      }
+    }
+    const elapsed = (performance.now() - start) / 1000;
+    return received * 8 / elapsed / 1e6;
+  }
+}
+
+async function measureUpload(onProgress) {
+  ulMax = 100;
+  const MB = 10;
+  const data = new Uint8Array(MB * 1024 * 1024).fill(65);
+  const total = data.length;
+
+  // Try Cloudflare upload endpoint
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    const start = performance.now();
+
+    xhr.upload.addEventListener('progress', e => {
+      if (e.lengthComputable) {
+        const elapsed = (performance.now() - start) / 1000;
+        if (elapsed > 0.3) {
+          const mbps = e.loaded * 8 / elapsed / 1e6;
+          if (mbps > ulMax * 0.88) ulMax = ulMax * 2;
+          onProgress(mbps, e.loaded / e.total);
+        }
+      }
+    });
+
+    const finish = () => {
+      const elapsed = (performance.now() - start) / 1000;
+      resolve(total * 8 / elapsed / 1e6);
+    };
+
+    xhr.addEventListener('load', finish);
+    xhr.addEventListener('error', () => {
+      // fallback to local upload
+      const xhr2 = new XMLHttpRequest();
+      const start2 = performance.now();
+      xhr2.upload.addEventListener('progress', e => {
+        if (e.lengthComputable) {
+          const el = (performance.now() - start2) / 1000;
+          if (el > 0.3) onProgress(e.loaded * 8 / el / 1e6, e.loaded / e.total);
+        }
+      });
+      xhr2.addEventListener('load', () => resolve(total * 8 / ((performance.now() - start2) / 1000) / 1e6));
+      xhr2.addEventListener('error', () => resolve(0));
+      xhr2.open('POST', '/api/speed/upload?_=' + Date.now());
+      xhr2.setRequestHeader('Content-Type', 'application/octet-stream');
+      xhr2.send(data.buffer);
+    });
+
+    xhr.open('POST', 'https://speed.cloudflare.com/__up');
+    xhr.send(data.buffer);
+  });
+}
+
+function calcGrade(dl, ul, ping) {
+  let s = 0;
+  s += dl >= 100 ? 40 : dl >= 50 ? 32 : dl >= 25 ? 24 : dl >= 10 ? 16 : Math.max(0, dl / 10 * 16);
+  s += ul >= 50 ? 30 : ul >= 20 ? 24 : ul >= 10 ? 18 : ul >= 5 ? 12 : Math.max(0, ul / 5 * 12);
+  s += ping <= 10 ? 30 : ping <= 30 ? 25 : ping <= 60 ? 20 : ping <= 100 ? 12 : ping <= 200 ? 6 : 0;
+  if (s >= 92) return 'A+';
+  if (s >= 80) return 'A';
+  if (s >= 68) return 'B+';
+  if (s >= 56) return 'B';
+  if (s >= 44) return 'C';
+  if (s >= 30) return 'D';
+  return 'F';
+}
+
+async function runSpeedTest() {
+  if (testing) return;
+  testing = true;
+  dlMax = 100; ulMax = 100;
+
+  const btn = document.getElementById('btnSpd');
+  const pWrap = document.getElementById('pbarWrap');
+  const pfill = document.getElementById('pfill');
+  const plbl = document.getElementById('plbl');
+
+  btn.disabled = true; btn.textContent = '⏳ Testing…';
+  pWrap.style.display = 'block';
+
+  // Reset gauges and values
+  resetGauge('dlFill'); resetGauge('ulFill');
+  document.getElementById('dlSpd').textContent = '—';
+  document.getElementById('ulSpd').textContent = '—';
+  document.getElementById('pingVal').textContent = '—';
+  document.getElementById('jitVal').textContent = '—';
+  document.getElementById('gradeVal').textContent = '—';
+  document.getElementById('dlCard').classList.remove('testing');
+  document.getElementById('ulCard').classList.remove('testing');
+
+  let dlMbps = 0, ulMbps = 0, pingMs = null, jitMs = null;
+
+  try {
+    // 1. Ping
+    plbl.textContent = '🏓 Measuring latency…';
+    pfill.style.width = '5%';
+    const { avg, jitter } = await measurePing();
+    pingMs = avg; jitMs = jitter;
+    document.getElementById('pingVal').textContent = avg != null ? avg : '—';
+    document.getElementById('jitVal').textContent = jitter != null ? jitter : '—';
+    pfill.style.width = '15%';
+
+    // 2. Download
+    document.getElementById('dlCard').classList.add('testing');
+    plbl.textContent = '⬇ Testing download speed…';
+
+    dlMbps = await measureDownload((mbps, progress) => {
+      document.getElementById('dlSpd').textContent = mbps.toFixed(1);
+      setGauge('dlFill', mbps, dlMax);
+      pfill.style.width = (15 + progress * 45) + '%';
+    });
+    document.getElementById('dlSpd').textContent = dlMbps.toFixed(1);
+    setGauge('dlFill', dlMbps, dlMax);
+    document.getElementById('dlCard').classList.remove('testing');
+    pfill.style.width = '60%';
+
+    // 3. Upload
+    document.getElementById('ulCard').classList.add('testing');
+    plbl.textContent = '⬆ Testing upload speed…';
+
+    ulMbps = await measureUpload((mbps, progress) => {
+      document.getElementById('ulSpd').textContent = mbps.toFixed(1);
+      setGauge('ulFill', mbps, ulMax);
+      pfill.style.width = (60 + progress * 35) + '%';
+    });
+    document.getElementById('ulSpd').textContent = ulMbps.toFixed(1);
+    setGauge('ulFill', ulMbps, ulMax);
+    document.getElementById('ulCard').classList.remove('testing');
+    pfill.style.width = '100%';
+
+    // Grade
+    const grade = calcGrade(dlMbps, ulMbps, pingMs || 999);
+    const gradeEl = document.getElementById('gradeVal');
+    gradeEl.textContent = grade;
+    gradeEl.className = 'sv grade-' + grade[0];
+
+    // Save history
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
+    speedHistory.unshift({ time: timeStr, dl: dlMbps.toFixed(1), ul: ulMbps.toFixed(1), ping: pingMs || '—', grade });
+    if (speedHistory.length > 10) speedHistory.pop();
+    renderHistory();
+
+    plbl.textContent = '✅ Test complete';
+    toast('✅ Speed test complete — ' + dlMbps.toFixed(1) + ' Mbps down', 'success');
+  } catch(e) {
+    plbl.textContent = '❌ Test failed: ' + e.message;
+    toast('❌ Speed test failed', 'error');
+  }
+
+  btn.disabled = false; btn.textContent = '▶  Start Speed Test';
+  testing = false;
+  setTimeout(() => { pWrap.style.display = 'none'; }, 3000);
+}
+
+function renderHistory() {
+  const hist = document.getElementById('hist');
+  const body = document.getElementById('histBody');
+  hist.style.display = 'block';
+  body.innerHTML = speedHistory.map(r =>
+    `<tr><td>${r.time}</td><td class="dl">${r.dl} Mbps</td><td class="ul">${r.ul} Mbps</td><td class="pg">${r.ping} ms</td><td class="gr grade-${r.grade[0]}">${r.grade}</td></tr>`
+  ).join('');
+}
+
+// ── Diagnostics ────────────────────────────────────────────────────
+async function loadDiagnostics() {
+  document.getElementById('diagOut').innerHTML = '<div class="ldg"><div class="spin"></div><p>Running diagnostics…</p></div>';
+  try {
+    const d = await api('/api/diagnostics');
+    const row = (k, v) => v != null && v !== '' ? `<div class="dr"><span class="dk">${k}</span><span class="dv">${h(String(v))}</span></div>` : '';
+    const internetHtml = `<div class="inet-pill ${d.internet ? 'inet-ok' : 'inet-fail'}">
+      <span>${d.internet ? '✅' : '❌'}</span>
+      <span>Internet ${d.internet ? 'Connected' : 'Unreachable'}${d.internetPing != null ? ' — ' + d.internetPing + ' ms latency' : ''}</span>
+    </div>`;
+    const diagHtml = `
+      ${internetHtml}
+      <div class="diag-grid">
+        <div class="dc">
+          <div class="dct">🌐 Connection</div>
+          ${row('Gateway', d.gateway)}
+          ${row('Subnet Mask', d.subnet)}
+          ${(d.dns || []).map((ip, i) => row('DNS ' + (i+1), ip)).join('')}
+          ${row('Packet Loss', d.packetLoss != null ? d.packetLoss + '%' : null)}
+        </div>
+        <div class="dc">
+          <div class="dct">📡 WiFi Interface</div>
+          ${row('BSSID', d.bssid)}
+          ${row('Band', d.band)}
+          ${row('Channel', d.channel)}
+          ${row('Signal', d.signal != null ? d.signal + '%' : null)}
+          ${row('Rx Rate', d.rxRate ? d.rxRate + ' Mbps' : null)}
+          ${row('Tx Rate', d.txRate ? d.txRate + ' Mbps' : null)}
+        </div>
+        <div class="dc">
+          <div class="dct">💻 Adapter</div>
+          ${row('Description', d.adapter)}
+          ${row('Radio Type', d.radio)}
+        </div>
+      </div>`;
+    document.getElementById('diagOut').innerHTML = diagHtml;
+  } catch(e) {
+    document.getElementById('diagOut').innerHTML = '<div class="empty"><div class="eico">⚠️</div><p>Diagnostics failed</p></div>';
+  }
+}
+
+// ── Utilities ──────────────────────────────────────────────────────
+async function api(path, method = 'GET', body = null) {
+  const opts = { method, headers: {} };
+  if (body) { opts.body = JSON.stringify(body); opts.headers['Content-Type'] = 'application/json'; }
+  const r = await fetch(path, opts);
+  return r.json();
+}
+function copyText(t) { navigator.clipboard.writeText(t).then(() => toast('📋 Copied!', 'success')); }
+function h(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function eid(s) { return String(s||'').replace(/[^a-zA-Z0-9]/g,'_'); }
+function js(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+let _toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// ── Internet / Portal ──────────────────────────────────────────────
+let _portalUrl = null;
+let _inetChecking = false;
+
+async function checkInternet(showBanner = true) {
+  if (_inetChecking) return;
+  _inetChecking = true;
+
+  const badge = document.getElementById('inetBadge');
+  const dot = document.getElementById('inetDot');
+  const lbl = document.getElementById('inetLabel');
+  badge.style.display = 'flex';
+  dot.textContent = '⏳'; lbl.textContent = 'Checking…';
+
+  try {
+    const r = await api('/api/internet');
+    _portalUrl = r.portalUrl;
+
+    if (r.online) {
+      dot.textContent = '🟢'; lbl.textContent = 'Internet OK';
+      hideBanner();
+    } else if (r.portal) {
+      dot.textContent = '🟡'; lbl.textContent = 'Portal / Proxy detected';
+      if (showBanner) showPortalBanner(r.portalUrl);
+    } else {
+      dot.textContent = '🔴'; lbl.textContent = 'No internet';
+      if (showBanner) showPortalBanner(null);
+    }
+  } catch {
+    dot.textContent = '❓'; lbl.textContent = 'Unknown';
+  }
+  _inetChecking = false;
+}
+
+function showPortalBanner(portalUrl) {
+  const banner = document.getElementById('portalBanner');
+  const btnPortal = document.getElementById('btnOpenPortal');
+  const btnCert = document.getElementById('btnFixCert');
+
+  if (portalUrl) {
+    document.getElementById('bannerTitle').textContent = 'Network sign-in required';
+    document.getElementById('bannerSub').textContent = 'This WiFi has a captive portal. Click "Open Portal Page" to complete login.';
+    btnPortal.style.display = 'inline-flex';
+  } else {
+    document.getElementById('bannerTitle').textContent = 'Internet blocked — Zscaler proxy detected';
+    document.getElementById('bannerSub').textContent = 'Zscaler is intercepting traffic. Your certificate may not be installed. Use the options below.';
+    btnPortal.style.display = 'none';
+    btnCert.style.display = 'inline-flex';
+  }
+  banner.style.display = 'block';
+}
+
+function hideBanner() { document.getElementById('portalBanner').style.display = 'none'; }
+function dismissBanner() { hideBanner(); }
+
+async function openPortal() {
+  const target = _portalUrl || 'http://neverssl.com';
+  await openHttp(target);
+}
+
+async function openHttp(url) {
+  try { await api('/api/open-browser', 'POST', { url }); toast('🌐 Opening in browser…', 'info'); }
+  catch { toast('❌ Could not open browser', 'error'); }
+}
+
+function fixZscaler() {
+  document.getElementById('zscalerMo').classList.add('open');
+}
+
+async function installZscalerCert() {
+  const status = document.getElementById('certStatus');
+  const btn = document.getElementById('btnInstallCert');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Working…'; }
+
+  const steps = [
+    '🔌 Connecting to www.google.com via TLS…',
+    '🔍 Extracting root CA from intercepted chain…',
+    '💾 Installing certificate to CurrentUser\\Root store…',
+  ];
+  let step = 0;
+  const stepInterval = setInterval(() => {
+    if (step < steps.length) { status.innerHTML = steps[step++]; }
+  }, 2000);
+
+  status.innerHTML = steps[0];
+
+  try {
+    const r = await api('/api/install-zscaler', 'POST');
+    clearInterval(stepInterval);
+
+    if (r.success) {
+      const subj = r.subject || r.certInfo?.subject || '(unknown)';
+      const issuer = r.issuer || r.certInfo?.issuer || '';
+      status.innerHTML = `
+        <div style="color:var(--success);font-weight:700;font-size:13px;margin-bottom:8px">✅ Certificate installed successfully!</div>
+        <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px;font-size:11px;color:var(--text-dim);word-break:break-all;margin-bottom:10px">
+          <div><strong>Subject:</strong> ${h(String(subj))}</div>
+          ${issuer ? `<div style="margin-top:4px"><strong>Issuer:</strong> ${h(String(issuer))}</div>` : ''}
+        </div>
+        <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:10px;font-size:12px;color:#fbbf24">
+          ⚠️ <strong>You must restart Edge/Chrome</strong> for the certificate to take effect.<br>
+          Close all browser windows, reopen, and try any HTTPS site.
+        </div>`;
+      toast('✅ Cert installed — restart your browser!', 'success');
+    } else {
+      status.innerHTML = `
+        <div style="color:var(--danger);font-weight:700;margin-bottom:6px">❌ Installation failed</div>
+        <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:8px">${h(r.error || 'Unknown error')}</div>
+        <div style="font-size:11.5px;color:var(--text-dim)">
+          <strong>Try this instead:</strong><br>
+          1. Close this app<br>
+          2. Right-click <strong>start.bat</strong> → <em>Run as administrator</em><br>
+          3. Open WiFi Manager and click this button again
+        </div>`;
+    }
+  } catch (e) {
+    clearInterval(stepInterval);
+    status.innerHTML = `<div style="color:var(--danger)">❌ ${h(e.message)}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Make sure you're connected to the Zscaler-protected WiFi.</div>`;
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '⬇ Auto-Extract & Install Cert'; }
+}
+
+// ── Event listeners ────────────────────────────────────────────────
+document.getElementById('connMo').addEventListener('click', e => { if (e.target === e.currentTarget) closeConnMo(); });
+document.getElementById('qrMo').addEventListener('click', e => { if (e.target === e.currentTarget) closeQR(); });
+document.getElementById('zscalerMo').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); });
+document.getElementById('connPw').addEventListener('keydown', e => { if (e.key === 'Enter') submitConn(); });
+
+// ── Init ───────────────────────────────────────────────────────────
+loadStatus();
+loadSaved();
+setInterval(loadStatus, 10000);
+</script>
+</body>
+</html>
