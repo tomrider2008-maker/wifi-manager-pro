@@ -290,7 +290,9 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
 
   if (pathname === '/' || pathname === '/index.html') {
-    const html = fs.readFileSync(path.join(__dirname, 'index.html'));
+    // When running as a pkg exe, look next to the exe; otherwise use __dirname
+    const htmlDir = process.pkg ? path.dirname(process.execPath) : __dirname;
+    const html = fs.readFileSync(path.join(htmlDir, 'index.html'));
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return res.end(html);
   }
