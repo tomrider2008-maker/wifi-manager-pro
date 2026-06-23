@@ -375,6 +375,33 @@ body::before{content:'';position:fixed;inset:0;background:
 
 <!-- SCAN -->
 <div class="panel" id="panel-scan">
+
+  <!-- My Hotspot QR -->
+  <div style="background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08));border:1px solid rgba(99,102,241,0.25);border-radius:16px;padding:18px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <span style="font-size:22px">📱</span>
+      <div>
+        <div style="font-weight:700;font-size:14px;color:var(--text)">My Hotspot QR</div>
+        <div style="font-size:11.5px;color:var(--text-muted)">Share your laptop hotspot with a phone — scan to connect instantly</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">Hotspot Name (SSID)</label>
+        <input id="hsSSID" type="text" placeholder="Auto-detect or type name…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">Password</label>
+        <input id="hsPASS" type="text" placeholder="Auto-detect or type password…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;box-sizing:border-box;"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn bp" onclick="generateHotspotQR()" style="flex:1;justify-content:center">📷 Generate QR Code</button>
+      <button class="btn bs" onclick="loadHotspotInfo()" id="btnHsDetect" style="font-size:12px;padding:8px 14px">🔄 Auto-detect</button>
+    </div>
+    <div id="hsStatus" style="font-size:11.5px;color:var(--text-muted);margin-top:8px;display:none"></div>
+  </div>
+
   <div class="toolbar">
     <div class="sw"><span class="si">🔍</span><input class="sbox" type="text" placeholder="Search nearby networks…" oninput="filterScan(this.value)"/></div>
     <button class="btn bp" id="btnScan" onclick="scanNetworks()">🔍 Scan Now</button>
@@ -737,6 +764,42 @@ async function submitConn() {
     } else toast('❌ Wrong password or connection failed', 'error');
   } catch { toast('❌ Connection error', 'error'); }
   btn.disabled = false; btn.textContent = 'Connect';
+}
+
+// ── Hotspot QR ─────────────────────────────────────────────────────
+async function loadHotspotInfo() {
+  const btn = document.getElementById('btnHsDetect');
+  const st  = document.getElementById('hsStatus');
+  btn.disabled = true; btn.textContent = '⏳ Detecting…';
+  st.style.display = 'block'; st.textContent = 'Reading hotspot settings…';
+  try {
+    const r = await api('/api/hotspot');
+    if (r.ssid) {
+      document.getElementById('hsSSID').value = r.ssid;
+      st.style.color = 'var(--success)';
+      st.textContent = r.active ? '✅ Hotspot is active' : '⚠️ Hotspot detected but not broadcasting — enable it in Settings → Mobile Hotspot';
+    } else {
+      st.style.color = 'var(--text-muted)';
+      st.textContent = 'Could not auto-detect. Go to Settings → Network → Mobile Hotspot to find your SSID and password, then type them above.';
+    }
+    if (r.password) document.getElementById('hsPASS').value = r.password;
+  } catch {
+    st.style.color = 'var(--danger)';
+    st.textContent = 'Auto-detect failed. Enter your hotspot name and password manually.';
+  }
+  btn.disabled = false; btn.textContent = '🔄 Auto-detect';
+}
+
+function generateHotspotQR() {
+  const ssid = document.getElementById('hsSSID').value.trim();
+  const pass = document.getElementById('hsPASS').value.trim();
+  const st   = document.getElementById('hsStatus');
+  if (!ssid) {
+    st.style.display = 'block'; st.style.color = 'var(--danger)';
+    st.textContent = 'Please enter your hotspot name (SSID) first.'; return;
+  }
+  st.style.display = 'none';
+  showQR(ssid, pass, pass ? 'WPA' : 'open');
 }
 
 // ── QR Code ────────────────────────────────────────────────────────

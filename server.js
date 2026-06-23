@@ -274,6 +274,32 @@ async function connectNewNetwork(ssid, password, auth) {
   }
 }
 
+async function getHotspotInfo() {
+  // SSID from netsh
+  const out = await run('netsh wlan show hostednetwork');
+  const ssidMatch   = out.match(/SSID Name\s*:\s*"?([^"\r\n]+)"?/i);
+  const statusMatch = out.match(/Status\s*:\s*(.+)/i);
+  const ssid   = ssidMatch   ? ssidMatch[1].trim()   : null;
+  const active = statusMatch ? statusMatch[1].trim().toLowerCase() === 'started' : false;
+
+  // Password from registry (no admin needed on most Windows 10/11 configs)
+  let password = null;
+  const paths = [
+    'HKLM:\\SOFTWARE\\Microsoft\\WlanSvc\\Parameters\\MobileSetting',
+    'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\icssvc\\Settings',
+  ];
+  for (const regPath of paths) {
+    if (password) break;
+    const ps = `try { $p = Get-ItemProperty '${regPath}' -EA Stop; $k = $p.TetheringNetworkKey; if (-not $k) { $k = $p.HostedNetworkPassword }; Write-Output $k } catch { Write-Output '' }`;
+    const out2 = await new Promise(res =>
+      exec(`powershell -NonInteractive -Command "${ps}"`, { timeout: 6000 }, (e, o) => res((o || '').trim()))
+    );
+    if (out2 && out2.length >= 1) password = out2;
+  }
+
+  return { ssid, password, active };
+}
+
 async function disconnectNetwork() {
   const result = await run('netsh wlan disconnect');
   return result.toLowerCase().includes('successfully');
@@ -408,6 +434,14 @@ const server = http.createServer(async (req, res) => {
       const result = await checkInternet();
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify(result));
+    } catch (e) { res.writeHead(500); return res.end(JSON.stringify({ error: e.message })); }
+  }
+
+  if (pathname === '/api/hotspot') {
+    try {
+      const info = await getHotspotInfo();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(info));
     } catch (e) { res.writeHead(500); return res.end(JSON.stringify({ error: e.message })); }
   }
 
