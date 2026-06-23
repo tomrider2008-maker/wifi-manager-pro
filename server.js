@@ -446,7 +446,24 @@ const server = http.createServer(async (req, res) => {
   res.end(JSON.stringify({ error: 'Not found' }));
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`WiFi Manager Pro running at http://127.0.0.1:${PORT}`);
-  exec(`start http://127.0.0.1:${PORT}`);
-});
+function startServer(port, tries) {
+  if (tries <= 0) { console.error('Could not find a free port.'); return; }
+  // Clear old listeners before each attempt to avoid duplicates
+  server.removeAllListeners('listening');
+  server.removeAllListeners('error');
+  server.once('listening', () => {
+    console.log(`WiFi Manager Pro running at http://127.0.0.1:${port}`);
+    exec(`start http://127.0.0.1:${port}`);
+  });
+  server.once('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${port} busy, trying ${port + 1}...`);
+      server.close(() => startServer(port + 1, tries - 1));
+    } else {
+      console.error('Server error:', err.message);
+    }
+  });
+  server.listen(port, '127.0.0.1');
+}
+
+startServer(PORT, 10);
